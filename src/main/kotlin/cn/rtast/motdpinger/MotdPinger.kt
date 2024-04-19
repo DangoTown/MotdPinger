@@ -17,7 +17,6 @@
 
 package cn.rtast.motdpinger
 
-import com.google.gson.Gson
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -26,8 +25,27 @@ import java.net.Socket
 
 class MotdPinger {
 
-    companion object {
-        val gson = Gson()
+    private fun DataInputStream.readVarInt(): Int {
+        var value = 0
+        var i = 0
+        var b: Int
+        while (this.read().also { b = it } != -1) {
+            value = value or ((b and 0x7F) shl i * 7)
+            if (b and 0x80 == 0) {
+                return value
+            }
+            i++
+        }
+        return -1
+    }
+
+    private fun DataOutputStream.writeVarInt(value: Int) {
+        var v = value
+        while ((v and 0x7F.inv()) != 0) {
+            this.write((v and 0x7F) or 0x80)
+            v = v ushr 7
+        }
+        this.write(v)
     }
 
     private fun readPacket(dataInput: DataInputStream, dataOutput: DataOutputStream): String {
@@ -68,12 +86,12 @@ class MotdPinger {
         return baos
     }
 
-    fun pingServer(host: String, port: Int = 25565): ServerMOTDResponse? {
+    fun pingServer(host: String, port: Int = 25565, timeout: Int = 7000): String? {
         val address = InetSocketAddress(host, port)
         if (address.isUnresolved) return null
 
         val socket = Socket()
-        socket.connect(address)
+        socket.connect(address, timeout)
 
         val outStream = socket.getOutputStream()
         val inputStream = socket.getInputStream()
@@ -88,16 +106,7 @@ class MotdPinger {
 
         dataOutput.writeByte(0x01)
         dataOutput.writeByte(0x00)
-        val stringResponse = this.readPacket(dataInput, dataOutput)
-
-        println(stringResponse)
-
-        return gson.fromJson(stringResponse, ServerMOTDResponse::class.java)
+        return this.readPacket(dataInput, dataOutput)
     }
 
-}
-
-
-fun main() {
-    val pinger = MotdPinger().pingServer("localhost")
 }
