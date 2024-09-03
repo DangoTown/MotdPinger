@@ -89,24 +89,21 @@ class MotdPinger {
     fun pingServer(host: String, port: Int = 25565, timeout: Int = 7000): String? {
         val address = InetSocketAddress(host, port)
         if (address.isUnresolved) return null
-
         val socket = Socket()
-        socket.connect(address, timeout)
-
-        val outStream = socket.getOutputStream()
-        val inputStream = socket.getInputStream()
-
-        val dataOutput = DataOutputStream(outStream)
-        val dataInput = DataInputStream(inputStream)
-
-        val handshakePacket = this.handshakePacket(host, port)
-
-        dataOutput.writeVarInt(handshakePacket.size())
-        dataOutput.write(handshakePacket.toByteArray())
-
-        dataOutput.writeByte(0x01)
-        dataOutput.writeByte(0x00)
-        return this.readPacket(dataInput, dataOutput)
+        try {
+            socket.connect(address, timeout)
+            val outStream = socket.getOutputStream()
+            val inputStream = socket.getInputStream()
+            val dataOutput = DataOutputStream(outStream)
+            val dataInput = DataInputStream(inputStream)
+            val handshakePacket = this.handshakePacket(host, port)
+            dataOutput.writeVarInt(handshakePacket.size())
+            dataOutput.write(handshakePacket.toByteArray())
+            dataOutput.writeByte(0x01)
+            dataOutput.writeByte(0x00)
+            return this.readPacket(dataInput, dataOutput)
+        } finally {
+            socket.close()
+        }
     }
-
 }
