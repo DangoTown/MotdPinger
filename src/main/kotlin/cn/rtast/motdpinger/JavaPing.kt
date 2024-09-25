@@ -18,7 +18,6 @@
 package cn.rtast.motdpinger
 
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonObject
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
