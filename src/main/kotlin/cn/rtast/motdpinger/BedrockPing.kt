@@ -14,10 +14,6 @@ import java.nio.ByteBuffer
 
 class BedrockPing : MOTDPing {
 
-    fun String.removeColorCodes(): String {
-        return this.replace(Regex("§."), "")
-    }
-
     private fun String.decodeHex(): ByteArray {
         return chunked(2).map { it.toInt(16).toByte() }.toByteArray()
     }
