@@ -14,7 +14,7 @@ import java.nio.ByteBuffer
 
 class BedrockPing : MOTDPing {
 
-    private fun String.removeColorCodes(): String {
+    fun String.removeColorCodes(): String {
         return this.replace(Regex("§."), "")
     }
 
@@ -41,8 +41,8 @@ class BedrockPing : MOTDPing {
             val rawResponse = String(responseData, 35, responsePacket.length - 35)
             val splitResponse = rawResponse.split(";")
             BEPingResponse(
-                rawResponse, splitResponse[1].removeColorCodes(),
-                splitResponse[2].toInt(), splitResponse[3], splitResponse[4].toInt(),
+                rawResponse, splitResponse[1], splitResponse[2].toInt(),
+                splitResponse[3], splitResponse[4].toInt(),
                 splitResponse[5].toInt(), splitResponse[6], splitResponse[7],
                 splitResponse[8], splitResponse[9].toInt(), splitResponse[10].toInt(),
                 splitResponse[11].toInt()
