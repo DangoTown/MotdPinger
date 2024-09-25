@@ -17,13 +17,17 @@
 
 package cn.rtast.motdpinger
 
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonObject
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.InetSocketAddress
 import java.net.Socket
 
-class MotdPinger {
+class JavaPing : MOTDPing {
+
+    private val gson = GsonBuilder().disableHtmlEscaping().create()
 
     private fun DataInputStream.readVarInt(): Int {
         var value = 0
@@ -51,22 +55,16 @@ class MotdPinger {
     private fun readPacket(dataInput: DataInputStream, dataOutput: DataOutputStream): String {
         dataInput.readVarInt()
         var id = dataInput.readVarInt()
-
         if (id == -1 || id != 0x00) throw Exception()
-
         val length = dataInput.readVarInt()
-
         if (length == -1 || length == 0) throw Exception()
-
         val bytesInput = ByteArray(length)
         dataInput.readFully(bytesInput)
         val stringInput = String(bytesInput)
-
         val timeNow = System.currentTimeMillis()
         dataOutput.writeByte(0x09)
         dataOutput.writeByte(0x01)
         dataOutput.writeLong(timeNow)
-
         dataInput.readVarInt()
         id = dataInput.readVarInt()
         if (id == -1 || id != 0x01) throw Exception()
@@ -86,12 +84,12 @@ class MotdPinger {
         return baos
     }
 
-    fun pingServer(host: String, port: Int = 25565, timeout: Int = 7000): String? {
+    override fun ping(host: String, port: Int, timeout: Int): JavaPingResponse? {
         val address = InetSocketAddress(host, port)
         if (address.isUnresolved) return null
         val socket = Socket()
-        try {
-            socket.connect(address, timeout)
+        socket.use {
+            it.connect(address, timeout)
             val outStream = socket.getOutputStream()
             val inputStream = socket.getInputStream()
             val dataOutput = DataOutputStream(outStream)
@@ -101,9 +99,10 @@ class MotdPinger {
             dataOutput.write(handshakePacket.toByteArray())
             dataOutput.writeByte(0x01)
             dataOutput.writeByte(0x00)
-            return this.readPacket(dataInput, dataOutput)
-        } finally {
-            socket.close()
+            val rawResponse = this.readPacket(dataInput, dataOutput)
+            val json = gson.fromJson(rawResponse, JavaPingResponse::class.java)
+            json.rawResponse = rawResponse
+            return json
         }
     }
 }
