@@ -16,5 +16,5 @@ interface Response {
     /**
      * 服务器的延迟
      */
-    var latency: Long
+    val latency: Long
 }

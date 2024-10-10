@@ -20,5 +20,5 @@ data class BEPingResponse(
     val externalPort: Int,
     val internalPort: Int,
     override val rawResponse: String,
-    override var latency: Long
+    override val latency: Long
 ) : Response
