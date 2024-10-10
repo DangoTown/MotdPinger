@@ -12,7 +12,8 @@ data class JavaPingResponse(
     val players: Players,
     val favicon: String?,
     val description: Any,
-    override var rawResponse: String
+    override var rawResponse: String,
+    override var latency: Long
 ) : Response {
     data class Version(
         val protocol: Int,

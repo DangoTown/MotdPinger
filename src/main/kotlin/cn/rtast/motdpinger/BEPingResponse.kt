@@ -8,7 +8,6 @@
 package cn.rtast.motdpinger
 
 data class BEPingResponse(
-    override val rawResponse: String,
     val motd: String,
     val protocolVersion: Int,
     val version: String,
@@ -20,4 +19,6 @@ data class BEPingResponse(
     val mapId: Int,
     val externalPort: Int,
     val internalPort: Int,
-): Response
+    override val rawResponse: String,
+    override var latency: Long
+) : Response

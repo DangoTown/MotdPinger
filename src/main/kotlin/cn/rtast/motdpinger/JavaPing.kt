@@ -51,7 +51,11 @@ class JavaPing : MOTDPing {
         this.write(v)
     }
 
-    private fun readPacket(dataInput: DataInputStream, dataOutput: DataOutputStream): String {
+    private fun readPacket(
+        dataInput: DataInputStream,
+        dataOutput: DataOutputStream,
+        sendTime: Long
+    ): Pair<String, Long> {
         dataInput.readVarInt()
         var id = dataInput.readVarInt()
         if (id == -1 || id != 0x00) throw Exception()
@@ -67,8 +71,8 @@ class JavaPing : MOTDPing {
         dataInput.readVarInt()
         id = dataInput.readVarInt()
         if (id == -1 || id != 0x01) throw Exception()
-
-        return stringInput
+        val receiveTime = System.currentTimeMillis()
+        return stringInput to receiveTime - sendTime
     }
 
     private fun handshakePacket(host: String, port: Int): ByteArrayOutputStream {
@@ -98,9 +102,11 @@ class JavaPing : MOTDPing {
             dataOutput.write(handshakePacket.toByteArray())
             dataOutput.writeByte(0x01)
             dataOutput.writeByte(0x00)
-            val rawResponse = this.readPacket(dataInput, dataOutput)
+            val sendTime = System.currentTimeMillis()
+            val (rawResponse, latency) = this.readPacket(dataInput, dataOutput, sendTime)
             val json = gson.fromJson(rawResponse, JavaPingResponse::class.java)
             json.rawResponse = rawResponse
+            json.latency = latency
             return json
         }
     }

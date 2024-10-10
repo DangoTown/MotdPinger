@@ -18,7 +18,6 @@ class BedrockPing : MOTDPing {
         return chunked(2).map { it.toInt(16).toByte() }.toByteArray()
     }
 
-
     override fun ping(host: String, port: Int, timeout: Int): BEPingResponse {
         val socket = DatagramSocket()
         socket.soTimeout = timeout
@@ -28,20 +27,23 @@ class BedrockPing : MOTDPing {
         buffer.putLong(0)
         buffer.put("00ffff00fefefefefdfdfdfd12345678".decodeHex())
         val requestPacket = DatagramPacket(buffer.array(), buffer.position(), address, port)
+        val sendTime = System.currentTimeMillis()
         socket.send(requestPacket)
         val responseBuffer = ByteArray(1024)
         val responsePacket = DatagramPacket(responseBuffer, responseBuffer.size)
         return socket.use {
             it.receive(responsePacket)
+            val receiveTime = System.currentTimeMillis()
+            val latency = receiveTime - sendTime
             val responseData = responsePacket.data
             val rawResponse = String(responseData, 35, responsePacket.length - 35)
             val splitResponse = rawResponse.split(";")
             BEPingResponse(
-                rawResponse, splitResponse[1], splitResponse[2].toInt(),
+                splitResponse[1], splitResponse[2].toInt(),
                 splitResponse[3], splitResponse[4].toInt(),
                 splitResponse[5].toInt(), splitResponse[6], splitResponse[7],
                 splitResponse[8], splitResponse[9].toInt(), splitResponse[10].toInt(),
-                splitResponse[11].toInt()
+                splitResponse[11].toInt(), rawResponse, latency
             )
         }
     }
