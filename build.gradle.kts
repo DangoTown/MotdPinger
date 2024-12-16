@@ -35,10 +35,10 @@ publishing {
 
     repositories {
         maven {
-            url = uri("https://repo.rtast.cn/api/v4/projects/19/packages/maven")
+            url = uri("https://maven.pkg.github.com/DangoTown/MotdPinger")
             credentials {
                 username = "RTAkland"
-                password = System.getenv("TOKEN")
+                password = System.getenv("GITHUB_TOKEN")
             }
         }
     }
