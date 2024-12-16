@@ -16,25 +16,28 @@ dependencies {
     implementation("com.google.code.gson:gson:2.11.0")
 }
 
-tasks.register<Jar>("sourceJar") {
+val sourceJar by tasks.registering(Jar::class) {
     archiveClassifier.set("sources")
     from(sourceSets.main.get().allSource)
 }
 
 artifacts {
-    archives(tasks.named("sourceJar"))
+    archives(sourceJar)
 }
 
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            artifact(tasks["sourceJar"])
+            artifact(sourceJar)
+            artifactId = "motd-pinger"
+            version = libVersion
         }
     }
 
     repositories {
         maven {
+            name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/DangoTown/MotdPinger")
             credentials {
                 username = "RTAkland"
